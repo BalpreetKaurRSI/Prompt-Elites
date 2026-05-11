@@ -1,22 +1,12 @@
-import os
+import json
 import uuid
 from datetime import datetime, timezone
 
-from .dynamodb import get_dynamodb_resource
-
-
-def _requirements_table():
-    dynamodb = get_dynamodb_resource()
-    return dynamodb.Table(os.getenv("DYNAMODB_REQUIREMENTS_TABLE", "requirements"))
-
-
-def _artifacts_table():
-    dynamodb = get_dynamodb_resource()
-    return dynamodb.Table(os.getenv("DYNAMODB_ARTIFACTS_TABLE", "artifacts"))
+from .dynamodb import get_connection
 
 
 def create_requirement(raw_text: str, source_file: str | None = None) -> dict:
-    table = _requirements_table()
+    conn = get_connection()
     item = {
         "requirement_id": str(uuid.uuid4()),
         "raw_text": raw_text,
@@ -24,67 +14,87 @@ def create_requirement(raw_text: str, source_file: str | None = None) -> dict:
         "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "pending",
     }
-    table.put_item(Item=item)
+    conn.execute(
+        "INSERT INTO requirements (requirement_id, raw_text, source_file, created_at, status) VALUES (?, ?, ?, ?, ?)",
+        (item["requirement_id"], item["raw_text"], item["source_file"], item["created_at"], item["status"]),
+    )
+    conn.commit()
+    conn.close()
     return item
 
 
 def get_requirement(requirement_id: str) -> dict | None:
-    table = _requirements_table()
-    response = table.get_item(Key={"requirement_id": requirement_id})
-    return response.get("Item")
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT * FROM requirements WHERE requirement_id = ?", (requirement_id,)
+    ).fetchone()
+    conn.close()
+    if row:
+        return dict(row)
+    return None
 
 
 def update_requirement_status(requirement_id: str, status: str):
-    table = _requirements_table()
-    table.update_item(
-        Key={"requirement_id": requirement_id},
-        UpdateExpression="SET #s = :status",
-        ExpressionAttributeNames={"#s": "status"},
-        ExpressionAttributeValues={":status": status},
+    conn = get_connection()
+    conn.execute(
+        "UPDATE requirements SET status = ? WHERE requirement_id = ?",
+        (status, requirement_id),
     )
+    conn.commit()
+    conn.close()
 
 
 def list_requirements() -> list[dict]:
-    table = _requirements_table()
-    response = table.scan()
-    items = response.get("Items", [])
-    return sorted(items, key=lambda x: x.get("created_at", ""), reverse=True)
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM requirements ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 
-def save_artifact(requirement_id: str, artifact_type: str, content: dict):
-    table = _artifacts_table()
-    import json
-    item = {
+def save_artifact(requirement_id: str, artifact_type: str, content: dict) -> dict:
+    conn = get_connection()
+    generated_at = datetime.now(timezone.utc).isoformat()
+    content_json = json.dumps(content)
+    conn.execute(
+        """INSERT OR REPLACE INTO artifacts (requirement_id, artifact_type, content, generated_at)
+           VALUES (?, ?, ?, ?)""",
+        (requirement_id, artifact_type, content_json, generated_at),
+    )
+    conn.commit()
+    conn.close()
+    return {
         "requirement_id": requirement_id,
         "artifact_type": artifact_type,
-        "content": json.dumps(content),
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "content": content,
+        "generated_at": generated_at,
     }
-    table.put_item(Item=item)
-    return item
 
 
 def get_artifacts(requirement_id: str) -> list[dict]:
-    table = _artifacts_table()
-    import json
-    response = table.query(
-        KeyConditionExpression="requirement_id = :rid",
-        ExpressionAttributeValues={":rid": requirement_id},
-    )
-    items = response.get("Items", [])
-    for item in items:
-        if "content" in item and isinstance(item["content"], str):
-            item["content"] = json.loads(item["content"])
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM artifacts WHERE requirement_id = ?", (requirement_id,)
+    ).fetchall()
+    conn.close()
+    items = []
+    for row in rows:
+        item = dict(row)
+        item["content"] = json.loads(item["content"])
+        items.append(item)
     return items
 
 
 def get_artifact(requirement_id: str, artifact_type: str) -> dict | None:
-    table = _artifacts_table()
-    import json
-    response = table.get_item(
-        Key={"requirement_id": requirement_id, "artifact_type": artifact_type}
-    )
-    item = response.get("Item")
-    if item and "content" in item and isinstance(item["content"], str):
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT * FROM artifacts WHERE requirement_id = ? AND artifact_type = ?",
+        (requirement_id, artifact_type),
+    ).fetchone()
+    conn.close()
+    if row:
+        item = dict(row)
         item["content"] = json.loads(item["content"])
-    return item
+        return item
+    return None

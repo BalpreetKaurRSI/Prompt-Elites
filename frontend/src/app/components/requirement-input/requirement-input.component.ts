@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatChipsModule } from '@angular/material/chips';
 
 import { ApiService, Requirement } from '../../services/api.service';
 
@@ -24,6 +25,7 @@ import { ApiService, Requirement } from '../../services/api.service';
     MatIconModule,
     MatProgressBarModule,
     MatSnackBarModule,
+    MatChipsModule,
   ],
   template: `
     <div class="input-container">

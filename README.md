@@ -17,40 +17,28 @@ An AI-powered platform that assists engineering teams in transforming raw requir
 | Frontend | Angular 17+, Angular Material |
 | Backend | Python 3.11+, FastAPI, Uvicorn |
 | AI | OpenAI API (GPT-4o-mini) |
-| Database | AWS DynamoDB |
-| File Storage | AWS S3 |
-| Local Dev | DynamoDB Local, LocalStack |
+| Database | SQLite (zero-config, file-based) |
+| File Storage | Local filesystem |
 
 ## Prerequisites
 
 - **Node.js** 18+ and npm
 - **Angular CLI**: `npm install -g @angular/cli`
 - **Python** 3.11+
-- **Docker** (for local AWS services)
 - **OpenAI API Key** from https://platform.openai.com
 
-## Quick Start (Local Development)
+## Quick Start
 
-### 1. Clone and Configure
+### 1. Configure
 
 ```bash
 cd ai-sdlc-platform
 cp .env.example .env
 ```
 
-Edit `.env` and set your `OPENAI_API_KEY`. Leave `AWS_LOCAL=true` for local development.
+Edit `.env` and set your `OPENAI_API_KEY`.
 
-### 2. Start Local AWS Services
-
-```bash
-# DynamoDB Local
-docker run -d -p 8000:8000 amazon/dynamodb-local
-
-# LocalStack for S3
-docker run -d -p 4566:4566 localstack/localstack
-```
-
-### 3. Start the Backend
+### 2. Start the Backend
 
 ```bash
 cd backend
@@ -60,7 +48,7 @@ uvicorn main:app --reload --port 8080
 
 The API will be available at `http://localhost:8080`. Interactive docs at `http://localhost:8080/docs`.
 
-### 4. Start the Frontend
+### 3. Start the Frontend
 
 ```bash
 cd frontend
@@ -70,26 +58,11 @@ ng serve
 
 The app will be available at `http://localhost:4200`.
 
-## Production Deployment (AWS)
-
-### Using Real AWS Services
-
-1. Set `AWS_LOCAL=false` in `.env`
-2. Configure AWS credentials via `aws configure` or environment variables
-3. The app will automatically create DynamoDB tables and S3 buckets on startup
-
-### Environment Variables
+## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `OPENAI_API_KEY` | OpenAI API key | (required) |
-| `AWS_ACCESS_KEY_ID` | AWS access key | from aws configure |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key | from aws configure |
-| `AWS_REGION` | AWS region | us-east-1 |
-| `AWS_LOCAL` | Use local AWS services | true |
-| `S3_BUCKET_NAME` | S3 bucket for documents | ai-sdlc-documents |
-| `DYNAMODB_REQUIREMENTS_TABLE` | DynamoDB table name | requirements |
-| `DYNAMODB_ARTIFACTS_TABLE` | DynamoDB table name | artifacts |
 
 ## API Endpoints
 
@@ -111,6 +84,7 @@ ai-sdlc-platform/
 ├── backend/
 │   ├── main.py                 # FastAPI entry point
 │   ├── requirements.txt        # Python dependencies
+│   ├── data/                   # SQLite DB + uploaded files (auto-created)
 │   ├── routers/                # API route handlers
 │   │   ├── ingest.py           # Requirement ingestion
 │   │   ├── generate.py         # Structured output generation
@@ -119,12 +93,12 @@ ai-sdlc-platform/
 │   ├── services/               # Business logic
 │   │   ├── ai_service.py       # OpenAI integration
 │   │   ├── parser.py           # Document parsing
-│   │   ├── s3_service.py       # AWS S3 operations
+│   │   ├── s3_service.py       # Local file storage
 │   │   └── preprocessor.py     # Text preprocessing
 │   ├── models/
 │   │   └── schemas.py          # Pydantic request/response models
 │   └── database/
-│       ├── dynamodb.py         # DynamoDB client setup
+│       ├── dynamodb.py         # SQLite client setup
 │       └── models.py           # Data access layer
 ├── frontend/
 │   ├── src/app/
@@ -145,8 +119,8 @@ ai-sdlc-platform/
 
 ```
 [Angular Frontend] --> [FastAPI Backend] --> [OpenAI GPT-4o-mini]
-                                        --> [AWS DynamoDB]
-                                        --> [AWS S3]
+                                        --> [SQLite Database]
+                                        --> [Local File Storage]
 ```
 
-The frontend submits requirements via the API. The backend preprocesses the text, stores it in DynamoDB, uploads documents to S3, and calls OpenAI to generate structured outputs, test cases, and ambiguity analysis. Results are stored back in DynamoDB and served to the frontend dashboard.
+The frontend submits requirements via the API. The backend preprocesses the text, stores it in SQLite, saves uploaded documents locally, and calls OpenAI to generate structured outputs, test cases, and ambiguity analysis. Results are stored back in SQLite and served to the frontend dashboard.

@@ -26,5 +26,5 @@ dist/
 .DS_Store
 Thumbs.db
 
-# AWS
-.aws/
+# Data (SQLite DB + uploads)
+backend/data/

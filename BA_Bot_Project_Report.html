@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BA Bot — Project Documentation &amp; Implementation Report</title>
+<style>
+  @page { margin: 20mm 18mm; size: A4; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1e293b; line-height: 1.65; margin: 0; padding: 40px 48px;
+    font-size: 13px;
+  }
+  h1 { font-size: 28px; color: #312e81; margin: 0 0 4px; }
+  h2 { font-size: 20px; color: #3730a3; border-bottom: 2px solid #e0e7ff; padding-bottom: 6px; margin-top: 36px; }
+  h3 { font-size: 15px; color: #4338ca; margin-top: 22px; }
+  h4 { font-size: 13px; color: #475569; margin-top: 16px; margin-bottom: 6px; }
+  .subtitle { font-size: 15px; color: #6366f1; font-weight: 500; margin-bottom: 2px; }
+  .meta { font-size: 12px; color: #64748b; margin-bottom: 28px; }
+  p, li { margin-bottom: 6px; }
+  ul, ol { padding-left: 22px; }
+  code {
+    background: #f1f5f9; padding: 1px 5px; border-radius: 4px;
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 12px;
+  }
+  pre {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; font-size: 11.5px; line-height: 1.55;
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 12.5px;
+  }
+  th {
+    background: #eef2ff; color: #3730a3; text-align: left; padding: 8px 10px;
+    border-bottom: 2px solid #c7d2fe; font-weight: 600;
+  }
+  td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafbff; }
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px;
+    border-radius: 10px; margin-right: 4px;
+  }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .toc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 24px; margin: 20px 0 30px; }
+  .toc h3 { margin-top: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 3px; font-size: 13px; }
+  .toc a { color: #4338ca; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .diagram-box {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 16px 20px; margin: 12px 0; text-align: center; font-size: 12px;
+    font-family: 'Cascadia Code', Consolas, monospace; line-height: 1.7;
+  }
+  .cover-logo { font-size: 48px; color: #4338ca; margin-bottom: 8px; }
+  .page-break { page-break-before: always; }
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div style="text-align:center; padding: 80px 0 40px;">
+  <div class="cover-logo">&#9881;</div>
+  <h1 style="font-size:36px; margin-bottom:8px;">BA Bot</h1>
+  <div class="subtitle" style="font-size:18px;">SDLC Productivity Assistant by Prompt Elites</div>
+  <p style="color:#64748b; font-size:15px; margin-top:20px;">Project Documentation &amp; Implementation Report</p>
+  <p style="color:#94a3b8; font-size:13px; margin-top:40px;">Version 0.3.0 &mdash; May 2026</p>
+  <p style="color:#94a3b8; font-size:12px;">Team: Prompt Elites</p>
+</div>
+
+<!-- ==================== TABLE OF CONTENTS ==================== -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#sec-overview">Project Overview</a></li>
+    <li><a href="#sec-features">Key Features</a></li>
+    <li><a href="#sec-architecture">System Architecture</a></li>
+    <li><a href="#sec-tech-stack">Technology Stack</a></li>
+    <li><a href="#sec-backend">Backend Implementation</a>
+      <ol style="list-style-type:lower-alpha;">
+        <li><a href="#sec-api">API Endpoints</a></li>
+        <li><a href="#sec-schemas">Data Models (Schemas)</a></li>
+        <li><a href="#sec-ai">AI Integration (Anthropic)</a></li>
+        <li><a href="#sec-database">Database Layer (SQLite)</a></li>
+      </ol>
+    </li>
+    <li><a href="#sec-frontend">Frontend Implementation</a>
+      <ol style="list-style-type:lower-alpha;">
+        <li><a href="#sec-components">Component Architecture</a></li>
+        <li><a href="#sec-models">TypeScript Models</a></li>
+        <li><a href="#sec-services">Services</a></li>
+      </ol>
+    </li>
+    <li><a href="#sec-deployment">Deployment &amp; Infrastructure</a></li>
+    <li><a href="#sec-user-flow">User Flow &amp; Screens</a></li>
+    <li><a href="#sec-api-ref">API Reference</a></li>
+    <li><a href="#sec-file-structure">Project File Structure</a></li>
+    <li><a href="#sec-future">Future Enhancements</a></li>
+  </ol>
+</div>
+
+<!-- ==================== 1. PROJECT OVERVIEW ==================== -->
+<h2 id="sec-overview">1. Project Overview</h2>
+<p>
+  <strong>BA Bot</strong> is an AI-powered SDLC Productivity Assistant designed to help Business Analysts, Product Managers, and Agile teams rapidly translate free-form requirements into structured, actionable backlogs. The tool leverages Anthropic's Claude AI to intelligently decompose requirements into user stories, engineering tasks, and test cases — while also detecting ambiguities in the input and warning users to refine their requirements.
+</p>
+<p>
+  The application follows a modern microservices architecture with a <strong>Python/FastAPI backend</strong> and an <strong>Angular 17 frontend</strong>, containerised via Docker for consistent deployment.
+</p>
+
+<h3>Problem Statement</h3>
+<p>
+  Translating raw BA requirements into well-structured Agile backlogs is time-consuming, error-prone, and heavily dependent on individual expertise. Requirements often contain ambiguous language, missing edge cases, and undefined scope. Manual creation of stories, tasks, and test cases from these requirements can take hours per feature. BA Bot automates this entire workflow.
+</p>
+
+<h3>Solution</h3>
+<ul>
+  <li>Accepts requirements via text input, document upload (PDF/DOCX/TXT/CSV), or Jira references</li>
+  <li>Uses AI to generate stories with acceptance criteria and story-point estimates</li>
+  <li>Generates engineering tasks with assignee types and hour estimates</li>
+  <li>Detects requirement ambiguities and provides actionable suggestions</li>
+  <li>Generates deep, minimal test cases with step-by-step procedures</li>
+  <li>Supports full CRUD on generated work items (inline edit, delete, add new)</li>
+  <li>Persists analysis history in SQLite for browsing and rework</li>
+  <li>Exports results as JSON or Markdown</li>
+</ul>
+
+<!-- ==================== 2. KEY FEATURES ==================== -->
+<h2 id="sec-features">2. Key Features</h2>
+
+<table>
+  <thead><tr><th>Feature</th><th>Description</th><th>Category</th></tr></thead>
+  <tbody>
+    <tr><td><strong>AI Requirement Breakdown</strong></td><td>Converts free-form requirements into structured Stories and Tasks using Claude AI with tool-use for guaranteed structured output</td><td><span class="badge badge-purple">Core</span></td></tr>
+    <tr><td><strong>Ambiguity Detection</strong></td><td>Analyses requirements for vague terms, missing info, contradictions, and scope gaps; displays warnings with suggestions</td><td><span class="badge badge-amber">Quality</span></td></tr>
+    <tr><td><strong>Test Case Generation</strong></td><td>Generates deep, minimal test cases from the breakdown — favouring depth over breadth with clear steps and expected results</td><td><span class="badge badge-green">QA</span></td></tr>
+    <tr><td><strong>Document Upload</strong></td><td>Extracts text from PDF, DOCX, TXT, and CSV files (up to 10 MB) to use as requirement input</td><td><span class="badge badge-blue">Input</span></td></tr>
+    <tr><td><strong>Jira Integration</strong></td><td>Accepts Jira URLs and issue keys as contextual references for the AI</td><td><span class="badge badge-blue">Input</span></td></tr>
+    <tr><td><strong>Interactive Board</strong></td><td>Two-column Kanban board for Stories and Tasks with inline editing, delete confirmation, and add new items</td><td><span class="badge badge-purple">Core</span></td></tr>
+    <tr><td><strong>Analysis History</strong></td><td>SQLite-backed persistence; browse, load, update, and delete past analyses</td><td><span class="badge badge-green">Persistence</span></td></tr>
+    <tr><td><strong>Export</strong></td><td>Download breakdown as JSON or Markdown files</td><td><span class="badge badge-blue">Output</span></td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 3. SYSTEM ARCHITECTURE ==================== -->
+<h2 id="sec-architecture">3. System Architecture</h2>
+
+<div class="diagram-box">
+<pre style="text-align:left; background:transparent; border:none; padding:0;">
+┌─────────────────────────────────────────────────────────────────┐
+│                        BROWSER (User)                           │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │              Angular 17 Frontend (Port 4200)               │ │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │ │
+│  │  │ Requirements │ │  Work-Item   │ │   History Panel    │ │ │
+│  │  │    Form      │ │    Board     │ │                    │ │ │
+│  │  └──────────────┘ └──────────────┘ └────────────────────┘ │ │
+│  │  ┌──────────────────────────────────────────────────────┐ │ │
+│  │  │         BreakdownService (HTTP Client)               │ │ │
+│  │  └──────────────────────────────────────────────────────┘ │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────┬────────────────────────────┘
+                                     │ REST API
+┌────────────────────────────────────┴────────────────────────────┐
+│                  FastAPI Backend (Port 8000)                     │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  main.py — API Endpoints                                  │   │
+│  │  POST /api/breakdown    GET /api/history                  │   │
+│  │  POST /api/test-cases   GET /api/history/:id              │   │
+│  │  POST /api/upload       PUT /api/history/:id              │   │
+│  │  GET  /health           DELETE /api/history/:id           │   │
+│  └──────────┬──────────────────────────────┬─────────────────┘   │
+│             │                              │                     │
+│  ┌──────────▼───────────┐     ┌────────────▼──────────────┐     │
+│  │ anthropic_client.py  │     │     database.py            │     │
+│  │ (Anthropic Messages  │     │  (aiosqlite — SQLite DB)   │     │
+│  │  API + Tool Use)     │     │  data/history.db           │     │
+│  └──────────┬───────────┘     └───────────────────────────┘     │
+└─────────────┼───────────────────────────────────────────────────┘
+              │ HTTPS
+┌─────────────▼───────────────────────────────────────────────────┐
+│           Anthropic Claude API (claude-sonnet-4-5)             │
+│           api.anthropic.com/v1/messages                         │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<h3>Data Flow</h3>
+<ol>
+  <li>User enters requirements text, uploads documents, and/or pastes Jira links</li>
+  <li>Frontend sends <code>POST /api/breakdown</code> with the combined input</li>
+  <li>Backend constructs a prompt and calls Anthropic API with tool-use to get structured JSON</li>
+  <li>AI returns stories, tasks, ambiguity warnings in a single tool-use response</li>
+  <li>Backend auto-saves the breakdown to SQLite and returns it with a <code>history_id</code></li>
+  <li>Frontend renders the interactive board with ambiguity warnings (if any)</li>
+  <li>User can edit/add/delete items, generate test cases, save changes, or export</li>
+</ol>
+
+<!-- ==================== 4. TECHNOLOGY STACK ==================== -->
+<h2 id="sec-tech-stack">4. Technology Stack</h2>
+
+<table>
+  <thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>Frontend Framework</td><td>Angular</td><td>17.3+</td><td>SPA with standalone components</td></tr>
+    <tr><td>UI Library</td><td>Angular Material</td><td>17.3+</td><td>Material Design components</td></tr>
+    <tr><td>Backend Framework</td><td>FastAPI</td><td>0.110+</td><td>Async REST API</td></tr>
+    <tr><td>Language (Backend)</td><td>Python</td><td>3.12</td><td>Application logic</td></tr>
+    <tr><td>Language (Frontend)</td><td>TypeScript</td><td>5.4</td><td>Type-safe frontend code</td></tr>
+    <tr><td>AI Provider</td><td>Anthropic Claude</td><td>claude-sonnet-4-5</td><td>Structured AI generation via tool-use</td></tr>
+    <tr><td>HTTP Client</td><td>httpx</td><td>0.27+</td><td>Async HTTP for Anthropic API calls</td></tr>
+    <tr><td>Database</td><td>SQLite via aiosqlite</td><td>0.20+</td><td>Zero-config persistence for history</td></tr>
+    <tr><td>Data Validation</td><td>Pydantic</td><td>2.5+</td><td>Schema validation &amp; serialisation</td></tr>
+    <tr><td>Document Parsing</td><td>PyPDF2, python-docx</td><td>3.0+, 1.1+</td><td>PDF and DOCX text extraction</td></tr>
+    <tr><td>Containerisation</td><td>Docker &amp; Docker Compose</td><td>—</td><td>Multi-service deployment</td></tr>
+    <tr><td>Web Server</td><td>Nginx</td><td>stable-alpine</td><td>Frontend static file serving &amp; API proxy</td></tr>
+    <tr><td>App Server</td><td>Uvicorn</td><td>0.27+</td><td>ASGI server for FastAPI</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 5. BACKEND IMPLEMENTATION ==================== -->
+<div class="page-break"></div>
+<h2 id="sec-backend">5. Backend Implementation</h2>
+
+<h3 id="sec-api">5a. API Endpoints</h3>
+<p>The backend exposes the following RESTful endpoints via <code>main.py</code>:</p>
+
+<table>
+  <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th><th>Request Body</th><th>Response</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge badge-green">GET</span></td><td><code>/health</code></td><td>Health check</td><td>—</td><td><code>{"status":"ok"}</code></td></tr>
+    <tr><td><span class="badge badge-blue">POST</span></td><td><code>/api/breakdown</code></td><td>Generate requirement breakdown</td><td><code>BreakdownRequest</code></td><td><code>BreakdownWithHistory</code></td></tr>
+    <tr><td><span class="badge badge-blue">POST</span></td><td><code>/api/upload</code></td><td>Upload and extract text from documents</td><td><code>multipart/form-data</code></td><td><code>UploadResponse</code></td></tr>
+    <tr><td><span class="badge badge-blue">POST</span></td><td><code>/api/test-cases</code></td><td>Generate test cases from a breakdown</td><td><code>TestSuiteRequest</code></td><td><code>TestSuiteResponse</code></td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td><code>/api/history</code></td><td>List all saved analyses</td><td>—</td><td><code>HistoryEntry[]</code></td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td><code>/api/history/{id}</code></td><td>Get full detail for one record</td><td>—</td><td><code>HistoryDetail</code></td></tr>
+    <tr><td><span class="badge badge-amber">PUT</span></td><td><code>/api/history/{id}</code></td><td>Update a saved breakdown</td><td><code>Breakdown</code></td><td><code>HistoryDetail</code></td></tr>
+    <tr><td><span class="badge badge-red">DELETE</span></td><td><code>/api/history/{id}</code></td><td>Delete a saved analysis</td><td>—</td><td><code>{"ok":true}</code></td></tr>
+  </tbody>
+</table>
+
+<h3 id="sec-schemas">5b. Data Models (schemas.py)</h3>
+<p>All backend data models are defined using Pydantic v2 for strict validation and serialisation.</p>
+
+<h4>Work Item Models</h4>
+<table>
+  <thead><tr><th>Model</th><th>Fields</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>Story</code></td><td><code>id</code>, <code>title</code>, <code>description</code>, <code>acceptance_criteria[]</code>, <code>story_points</code></td><td>User story with AC and Fibonacci estimate</td></tr>
+    <tr><td><code>Task</code></td><td><code>id</code>, <code>title</code>, <code>description</code>, <code>assignee_type</code>, <code>parent_story_id?</code>, <code>estimate_hours</code></td><td>Engineering task linked to a story</td></tr>
+    <tr><td><code>AmbiguityWarning</code></td><td><code>area</code>, <code>concern</code>, <code>suggestion</code></td><td>Detected ambiguity in the requirement</td></tr>
+  </tbody>
+</table>
+
+<h4>API Contract Models</h4>
+<table>
+  <thead><tr><th>Model</th><th>Key Fields</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>BreakdownRequest</code></td><td><code>project_name</code>, <code>requirements</code>, <code>extra_context?</code>, <code>jira_links?</code>, <code>document_text?</code></td><td>Input to the breakdown endpoint</td></tr>
+    <tr><td><code>Breakdown</code></td><td><code>project_name</code>, <code>summary</code>, <code>stories[]</code>, <code>tasks[]</code>, <code>ambiguity_warnings[]</code></td><td>Core output model</td></tr>
+    <tr><td><code>BreakdownWithHistory</code></td><td>Extends <code>Breakdown</code> + <code>history_id</code></td><td>Returned after generation (includes DB ID)</td></tr>
+    <tr><td><code>HistoryEntry</code></td><td><code>id</code>, <code>project_name</code>, <code>summary</code>, <code>story_count</code>, <code>task_count</code>, <code>created_at</code>, <code>updated_at</code></td><td>Lightweight list item</td></tr>
+    <tr><td><code>HistoryDetail</code></td><td><code>id</code>, <code>breakdown</code>, <code>created_at</code>, <code>updated_at</code></td><td>Full record with nested Breakdown</td></tr>
+  </tbody>
+</table>
+
+<h4>Test Case Models</h4>
+<table>
+  <thead><tr><th>Model</th><th>Fields</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>TestStep</code></td><td><code>step_number</code>, <code>action</code>, <code>expected_result</code></td><td>Single step in a test case</td></tr>
+    <tr><td><code>TestCase</code></td><td><code>id</code>, <code>title</code>, <code>preconditions</code>, <code>priority</code>, <code>related_story_id?</code>, <code>steps[]</code></td><td>Complete test case with procedure</td></tr>
+    <tr><td><code>TestSuiteRequest</code></td><td><code>breakdown</code></td><td>Input: the breakdown to generate tests for</td></tr>
+    <tr><td><code>TestSuiteResponse</code></td><td><code>test_cases[]</code></td><td>Output: list of generated test cases</td></tr>
+  </tbody>
+</table>
+
+<h3 id="sec-ai">5c. AI Integration (anthropic_client.py)</h3>
+<p>The AI client uses Anthropic's <strong>tool-use</strong> feature to guarantee structured JSON output. This avoids fragile prompt-parsing and ensures every response matches the Pydantic schema exactly.</p>
+
+<h4>Breakdown Generation</h4>
+<ul>
+  <li><strong>Tool:</strong> <code>output_breakdown</code> — forces Claude to emit JSON matching the <code>Breakdown</code> schema</li>
+  <li><strong>System prompt:</strong> Instructs the AI to act as a senior product manager / tech lead</li>
+  <li><strong>Outputs:</strong> Summary, 3-8 stories with acceptance criteria, 4+ tasks with assignee types, and ambiguity warnings</li>
+  <li><strong>Ambiguity detection:</strong> The prompt instructs the AI to flag vague terms, missing info, contradictions, multi-interpretable assumptions, and scope gaps</li>
+</ul>
+
+<h4>Test Case Generation</h4>
+<ul>
+  <li><strong>Tool:</strong> <code>output_test_cases</code> — forces Claude to emit structured test cases</li>
+  <li><strong>System prompt:</strong> Senior QA engineer with strict rules:
+    <ul>
+      <li>Favour depth over breadth — as few test cases as possible</li>
+      <li>Merge scenarios into steps of existing cases when feasible</li>
+      <li>Only separate when preconditions or actors are fundamentally different</li>
+      <li>Cover happy paths first, then key negative/edge cases</li>
+    </ul>
+  </li>
+  <li><strong>Input:</strong> Full breakdown (stories + tasks + acceptance criteria) formatted as context</li>
+</ul>
+
+<h4>HTTP Client Configuration</h4>
+<pre>
+Timeout: connect=10s, read=120s, write=30s, pool=10s
+Limits:  max_connections=10, max_keepalive_connections=5
+Model:   claude-sonnet-4-5 (configurable via ANTHROPIC_DEFAULT_MODEL env var)
+</pre>
+
+<h3 id="sec-database">5d. Database Layer (database.py)</h3>
+<p>Uses <strong>aiosqlite</strong> for zero-config, file-based persistence. The database is created automatically on first access at <code>data/history.db</code>.</p>
+
+<h4>Schema</h4>
+<pre>
+CREATE TABLE IF NOT EXISTS history (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_name   TEXT    NOT NULL,
+    summary        TEXT    NOT NULL,
+    breakdown_json TEXT    NOT NULL,
+    created_at     TEXT    NOT NULL,
+    updated_at     TEXT    NOT NULL
+);
+</pre>
+
+<h4>Async CRUD Operations</h4>
+<table>
+  <thead><tr><th>Function</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>save_breakdown()</code></td><td>Insert new record, return auto-incremented ID</td></tr>
+    <tr><td><code>list_history()</code></td><td>Return all records (lightweight: no full JSON) ordered by <code>updated_at DESC</code></td></tr>
+    <tr><td><code>get_history(id)</code></td><td>Return single record with full breakdown JSON</td></tr>
+    <tr><td><code>update_breakdown(id, data)</code></td><td>Update record and set new <code>updated_at</code> timestamp</td></tr>
+    <tr><td><code>delete_history(id)</code></td><td>Delete a record by ID</td></tr>
+    <tr><td><code>close_db()</code></td><td>Gracefully close the connection on shutdown</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 6. FRONTEND IMPLEMENTATION ==================== -->
+<div class="page-break"></div>
+<h2 id="sec-frontend">6. Frontend Implementation</h2>
+<p>The frontend is built with <strong>Angular 17</strong> using standalone components (no NgModules) and <strong>Angular Material</strong> for the design system. The new control-flow syntax (<code>@if</code>, <code>@for</code>) is used throughout.</p>
+
+<h3 id="sec-components">6a. Component Architecture</h3>
+
+<table>
+  <thead><tr><th>Component</th><th>Selector</th><th>Responsibility</th></tr></thead>
+  <tbody>
+    <tr><td><code>AppComponent</code></td><td><code>app-root</code></td><td>Root shell — toolbar, routing between form/board/history, state management, test case orchestration</td></tr>
+    <tr><td><code>RequirementsFormComponent</code></td><td><code>app-requirements-form</code></td><td>Input form with requirement text, document upload, Jira links, extra context, example loader</td></tr>
+    <tr><td><code>WorkItemBoardComponent</code></td><td><code>app-work-item-board</code></td><td>Two-column Kanban board (Stories | Tasks) with add buttons, event forwarding</td></tr>
+    <tr><td><code>WorkItemCardComponent</code></td><td><code>app-work-item-card</code></td><td>Individual card with expand/collapse, inline editing, inline delete confirmation</td></tr>
+    <tr><td><code>HistoryPanelComponent</code></td><td><code>app-history-panel</code></td><td>Lists saved analyses with project name, summary, counts, date; click-to-load, inline delete</td></tr>
+  </tbody>
+</table>
+
+<h4>Component Communication</h4>
+<pre>
+AppComponent
+  ├── RequirementsFormComponent
+  │     @Input:  loading, errorMessage
+  │     @Output: submitForm → {projectName, requirements, extraContext, jiraLinks, documentText}
+  │
+  ├── WorkItemBoardComponent
+  │     @Input:  breakdown
+  │     @Output: itemChange, itemDelete, itemAdd → ItemChange {kind, item}
+  │     └── WorkItemCardComponent (repeated)
+  │           @Input:  item, kind, autoEdit
+  │           @Output: itemChange, itemDelete
+  │
+  └── HistoryPanelComponent
+        @Output: loadEntry → HistoryEntry, deleteEntry → number
+</pre>
+
+<h3 id="sec-models">6b. TypeScript Models (work-item.model.ts)</h3>
+<p>Frontend interfaces mirror the backend Pydantic models:</p>
+<ul>
+  <li><code>Story</code>, <code>Task</code>, <code>AmbiguityWarning</code>, <code>Breakdown</code>, <code>BreakdownRequest</code></li>
+  <li><code>TestStep</code>, <code>TestCase</code>, <code>TestSuiteResponse</code></li>
+  <li><code>HistoryEntry</code>, <code>HistoryDetail</code></li>
+</ul>
+
+<h3 id="sec-services">6c. Services</h3>
+
+<h4>BreakdownService</h4>
+<table>
+  <thead><tr><th>Method</th><th>HTTP Call</th><th>Returns</th></tr></thead>
+  <tbody>
+    <tr><td><code>generate(req)</code></td><td><code>POST /api/breakdown</code></td><td><code>Observable&lt;Breakdown&gt;</code></td></tr>
+    <tr><td><code>uploadDocuments(files)</code></td><td><code>POST /api/upload</code></td><td><code>Observable&lt;UploadResponse&gt;</code></td></tr>
+    <tr><td><code>generateTestCases(breakdown)</code></td><td><code>POST /api/test-cases</code></td><td><code>Observable&lt;TestSuiteResponse&gt;</code></td></tr>
+    <tr><td><code>getHistory()</code></td><td><code>GET /api/history</code></td><td><code>Observable&lt;HistoryEntry[]&gt;</code></td></tr>
+    <tr><td><code>getHistoryDetail(id)</code></td><td><code>GET /api/history/{id}</code></td><td><code>Observable&lt;HistoryDetail&gt;</code></td></tr>
+    <tr><td><code>updateHistory(id, breakdown)</code></td><td><code>PUT /api/history/{id}</code></td><td><code>Observable&lt;HistoryDetail&gt;</code></td></tr>
+    <tr><td><code>deleteHistory(id)</code></td><td><code>DELETE /api/history/{id}</code></td><td><code>Observable&lt;void&gt;</code></td></tr>
+  </tbody>
+</table>
+
+<h4>ExportService</h4>
+<table>
+  <thead><tr><th>Method</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>exportJson(breakdown)</code></td><td>Downloads the breakdown as a formatted JSON file</td></tr>
+    <tr><td><code>exportMarkdown(breakdown)</code></td><td>Converts to Markdown with headers, tables, and lists; triggers download</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 7. DEPLOYMENT ==================== -->
+<div class="page-break"></div>
+<h2 id="sec-deployment">7. Deployment &amp; Infrastructure</h2>
+
+<h3>Docker Architecture</h3>
+<table>
+  <thead><tr><th>Service</th><th>Base Image</th><th>Port</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>backend</code></td><td><code>python:3.12-slim</code></td><td>8000</td><td>FastAPI + Uvicorn ASGI server</td></tr>
+    <tr><td><code>frontend</code></td><td><code>node:20-alpine</code> (build) → <code>nginx:stable-alpine</code> (serve)</td><td>4200→80</td><td>Angular build artifacts served by Nginx</td></tr>
+  </tbody>
+</table>
+
+<h4>Docker Compose Configuration</h4>
+<pre>
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    ports: ["8000:8000"]
+    volumes: [backend-data:/app/data]    # SQLite persistence
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports: ["4200:80"]
+    depends_on: [backend]
+    restart: unless-stopped
+
+volumes:
+  backend-data:                          # Named volume for DB
+</pre>
+
+<h3>Environment Variables</h3>
+<table>
+  <thead><tr><th>Variable</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>ANTHROPIC_API_KEY</code></td><td>Yes</td><td>—</td><td>API key for Anthropic Claude</td></tr>
+    <tr><td><code>ANTHROPIC_DEFAULT_MODEL</code></td><td>No</td><td><code>claude-sonnet-4-5</code></td><td>Model to use for generation</td></tr>
+  </tbody>
+</table>
+
+<h3>Deployment Steps</h3>
+<ol>
+  <li>Create a <code>.env</code> file in the project root with <code>ANTHROPIC_API_KEY=sk-ant-...</code></li>
+  <li>Run <code>docker compose up --build -d</code></li>
+  <li>Frontend: <code>http://localhost:4200</code></li>
+  <li>Backend API docs: <code>http://localhost:8000/docs</code></li>
+</ol>
+
+<!-- ==================== 8. USER FLOW ==================== -->
+<h2 id="sec-user-flow">8. User Flow &amp; Screens</h2>
+
+<h3>Screen 1: Requirements Input</h3>
+<ul>
+  <li>Project name field (optional)</li>
+  <li>Requirements textarea (minimum 20 characters)</li>
+  <li>Document upload zone — drag-and-drop or browse for PDF/DOCX/TXT/CSV</li>
+  <li>Jira links textarea — paste URLs or issue keys</li>
+  <li>Extra context textarea — tech stack, constraints, etc.</li>
+  <li>Load Example button pre-fills a sample project</li>
+  <li>Generate Breakdown button triggers AI analysis</li>
+  <li>History panel below the form shows past analyses</li>
+</ul>
+
+<h3>Screen 2: Analysis Results</h3>
+<ul>
+  <li><strong>Result Header</strong> — project name and AI-generated summary</li>
+  <li><strong>Ambiguity Banner</strong> (conditional) — amber warning panel listing each detected ambiguity with area, concern, and suggestion. Two actions: "Refine Input" (returns to form) or "Proceed Anyway"</li>
+  <li><strong>Work Item Board</strong> — two-column grid:
+    <ul>
+      <li><strong>Stories column</strong> — each card shows ID, title, description, acceptance criteria, story points. Expandable. Inline editable. Deletable with confirmation.</li>
+      <li><strong>Tasks column</strong> — each card shows ID, title, description, assignee type, parent story, estimate hours. Same interaction patterns.</li>
+      <li>"Add Story" and "Add Task" buttons create new items in edit mode</li>
+    </ul>
+  </li>
+  <li><strong>Test Case Section</strong> — "Generate Test Cases" CTA button. Once generated, displays cards with ID, title, priority badge, story reference, preconditions, and step table (#, Action, Expected Result). Regenerate button available.</li>
+</ul>
+
+<h3>Toolbar Actions (when breakdown active)</h3>
+<ul>
+  <li><strong>Save</strong> — persists edits to the database</li>
+  <li><strong>Export</strong> — JSON or Markdown download</li>
+  <li><strong>History</strong> — toggles the history panel overlay</li>
+  <li><strong>New</strong> — resets to the input form</li>
+</ul>
+
+<!-- ==================== 9. API REFERENCE ==================== -->
+<h2 id="sec-api-ref">9. API Reference</h2>
+
+<h3>POST /api/breakdown</h3>
+<h4>Request</h4>
+<pre>
+{
+  "project_name": "Customer Onboarding Wizard",
+  "requirements": "We need a guided onboarding flow for new customers...",
+  "extra_context": "Stack: React, Node/Express, PostgreSQL",
+  "jira_links": "PROJ-101\nPROJ-204",
+  "document_text": "--- requirements.pdf ---\n..."
+}
+</pre>
+<h4>Response (BreakdownWithHistory)</h4>
+<pre>
+{
+  "project_name": "Customer Onboarding Wizard",
+  "summary": "A multi-step onboarding wizard that...",
+  "stories": [
+    {
+      "id": "STORY-1",
+      "title": "Company Details Collection",
+      "description": "As a new customer, I want to...",
+      "acceptance_criteria": ["Given...", "When...", "Then..."],
+      "story_points": 5
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TASK-1",
+      "title": "Build company details form component",
+      "description": "Create a React form with...",
+      "assignee_type": "dev",
+      "parent_story_id": "STORY-1",
+      "estimate_hours": 8
+    }
+  ],
+  "ambiguity_warnings": [
+    {
+      "area": "Mobile web support",
+      "concern": "No mention of minimum browser versions or screen sizes",
+      "suggestion": "Specify target browsers and minimum viewport width"
+    }
+  ],
+  "history_id": 42
+}
+</pre>
+
+<h3>POST /api/test-cases</h3>
+<h4>Request</h4>
+<pre>
+{
+  "breakdown": { /* full Breakdown object */ }
+}
+</pre>
+<h4>Response (TestSuiteResponse)</h4>
+<pre>
+{
+  "test_cases": [
+    {
+      "id": "TC-1",
+      "title": "Complete onboarding happy path",
+      "preconditions": "User has a valid email and is on the signup page",
+      "priority": "critical",
+      "related_story_id": "STORY-1",
+      "steps": [
+        {
+          "step_number": 1,
+          "action": "Enter company name 'Acme Corp' and select industry 'Technology'",
+          "expected_result": "Form validates and Next button becomes enabled"
+        },
+        {
+          "step_number": 2,
+          "action": "Click Next to proceed to team invitation step",
+          "expected_result": "Team invitation form is displayed with email input"
+        }
+      ]
+    }
+  ]
+}
+</pre>
+
+<!-- ==================== 10. FILE STRUCTURE ==================== -->
+<div class="page-break"></div>
+<h2 id="sec-file-structure">10. Project File Structure</h2>
+
+<pre>
+project2-requirements-planner/
+├── docker-compose.yml
+├── .env                              # ANTHROPIC_API_KEY (not committed)
+│
+├── backend/
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── requirements.txt              # Python dependencies
+│   ├── main.py                       # FastAPI app + all endpoints
+│   ├── schemas.py                    # Pydantic models
+│   ├── anthropic_client.py           # AI integration (breakdown + test cases)
+│   ├── database.py                   # SQLite CRUD layer (aiosqlite)
+│   └── data/
+│       └── history.db                # SQLite database (auto-created)
+│
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── package.json
+│   ├── angular.json
+│   ├── tsconfig.app.json
+│   └── src/
+│       ├── index.html
+│       ├── main.ts
+│       ├── styles.scss
+│       └── app/
+│           ├── app.component.ts      # Root component
+│           ├── app.component.html
+│           ├── app.component.scss
+│           ├── app.config.ts
+│           ├── models/
+│           │   └── work-item.model.ts
+│           ├── services/
+│           │   ├── breakdown.service.ts
+│           │   └── export.service.ts
+│           └── components/
+│               ├── requirements-form/
+│               │   ├── requirements-form.component.ts
+│               │   ├── requirements-form.component.html
+│               │   └── requirements-form.component.scss
+│               ├── work-item-board/
+│               │   ├── work-item-board.component.ts
+│               │   ├── work-item-board.component.html
+│               │   └── work-item-board.component.scss
+│               ├── work-item-card/
+│               │   ├── work-item-card.component.ts
+│               │   ├── work-item-card.component.html
+│               │   └── work-item-card.component.scss
+│               └── history-panel/
+│                   ├── history-panel.component.ts
+│                   ├── history-panel.component.html
+│                   └── history-panel.component.scss
+</pre>
+
+<!-- ==================== 11. PYTHON DEPENDENCIES ==================== -->
+<h2>Python Dependencies</h2>
+<table>
+  <thead><tr><th>Package</th><th>Version</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>fastapi</td><td>&ge;0.110.0</td><td>Web framework</td></tr>
+    <tr><td>uvicorn[standard]</td><td>&ge;0.27.0</td><td>ASGI server</td></tr>
+    <tr><td>httpx</td><td>&ge;0.27.0</td><td>Async HTTP client for Anthropic API</td></tr>
+    <tr><td>python-dotenv</td><td>&ge;1.0.0</td><td>Environment variable management</td></tr>
+    <tr><td>pydantic</td><td>&ge;2.5.0</td><td>Data validation and serialisation</td></tr>
+    <tr><td>python-multipart</td><td>&ge;0.0.9</td><td>Multipart form data (file uploads)</td></tr>
+    <tr><td>python-docx</td><td>&ge;1.1.0</td><td>DOCX text extraction</td></tr>
+    <tr><td>PyPDF2</td><td>&ge;3.0.0</td><td>PDF text extraction</td></tr>
+    <tr><td>aiosqlite</td><td>&ge;0.20.0</td><td>Async SQLite database access</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 12. FUTURE ENHANCEMENTS ==================== -->
+<h2 id="sec-future">11. Future Enhancements</h2>
+
+<table>
+  <thead><tr><th>Enhancement</th><th>Description</th><th>Priority</th></tr></thead>
+  <tbody>
+    <tr><td>Live Jira Sync</td><td>Fetch Jira issue details via REST API instead of manual paste</td><td><span class="badge badge-amber">High</span></td></tr>
+    <tr><td>Real-time Collaboration</td><td>WebSocket-based multi-user editing of the work item board</td><td><span class="badge badge-blue">Medium</span></td></tr>
+    <tr><td>Sprint Planning View</td><td>Drag-and-drop sprint allocation using story points and velocity</td><td><span class="badge badge-blue">Medium</span></td></tr>
+    <tr><td>Test Case Export</td><td>Export test cases as CSV/Excel for import into test management tools</td><td><span class="badge badge-green">Medium</span></td></tr>
+    <tr><td>User Authentication</td><td>Multi-tenant support with login, teams, and access control</td><td><span class="badge badge-amber">High</span></td></tr>
+    <tr><td>Confluence Export</td><td>Push generated documentation directly to Confluence pages</td><td><span class="badge badge-green">Low</span></td></tr>
+    <tr><td>Custom Prompts</td><td>Allow teams to customise AI prompts for domain-specific output</td><td><span class="badge badge-blue">Medium</span></td></tr>
+    <tr><td>Estimation Analytics</td><td>Track estimate accuracy over time and suggest calibration</td><td><span class="badge badge-green">Low</span></td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  <p><strong>BA Bot</strong> — SDLC Productivity Assistant by Prompt Elites &nbsp;|&nbsp; Version 0.3.0 &nbsp;|&nbsp; May 2026</p>
+  <p>This document was auto-generated from the project source code.</p>
+</div>
+
+</body>
+</html>

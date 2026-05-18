@@ -1,0 +1,51 @@
+<div class="history-panel">
+  <h3 class="panel-title">
+    <mat-icon>history</mat-icon>
+    Analysis History
+  </h3>
+
+  @if (loading) {
+    <div class="loading-state">
+      <mat-spinner diameter="32"></mat-spinner>
+      <span>Loading history…</span>
+    </div>
+  } @else if (entries.length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">inventory_2</mat-icon>
+      <p>No past analyses yet. Generate your first breakdown above!</p>
+    </div>
+  } @else {
+    <div class="history-list">
+      @for (entry of entries; track entry.id) {
+        <div class="history-row" (click)="onLoad(entry)">
+          <div class="row-main">
+            <span class="project-name">{{ entry.project_name }}</span>
+            <span class="summary-snippet">{{ entry.summary | slice:0:100 }}{{ entry.summary.length > 100 ? '…' : '' }}</span>
+          </div>
+          <div class="row-meta">
+            <span class="badge stories">{{ entry.story_count }} stories</span>
+            <span class="badge tasks">{{ entry.task_count }} tasks</span>
+            <span class="date">{{ formatDate(entry.updated_at) }}</span>
+          </div>
+          <div class="row-actions">
+            @if (confirmingDeleteId === entry.id) {
+              <span class="delete-confirm">
+                <span>Delete?</span>
+                <button mat-icon-button color="warn" (click)="confirmDelete(entry.id, $event)" aria-label="Confirm delete">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button mat-icon-button (click)="cancelDelete($event)" aria-label="Cancel delete">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </span>
+            } @else {
+              <button mat-icon-button class="delete-btn" (click)="requestDelete(entry.id, $event)" aria-label="Delete entry">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

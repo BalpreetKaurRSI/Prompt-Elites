@@ -1,0 +1,189 @@
+<mat-card class="item-card" [class.expanded]="expanded || isEditing" appearance="outlined">
+  @if (confirmingDelete) {
+    <div class="delete-confirm">
+      <mat-icon>warning</mat-icon>
+      <span>Delete <strong>{{ item.id }}</strong>?</span>
+      <span class="spacer"></span>
+      <button mat-flat-button color="warn" (click)="confirmDeleteAction()">
+        Delete
+      </button>
+      <button mat-button (click)="cancelDelete()">Cancel</button>
+    </div>
+  }
+
+  <mat-card-header>
+    <div class="header-row">
+      <div class="id-pill" [ngClass]="'kind-' + kind">{{ item.id }}</div>
+      <span class="spacer"></span>
+      @if (!isEditing) {
+        <button
+          mat-icon-button
+          class="action-btn"
+          matTooltip="Expand / Collapse"
+          (click)="toggleExpand(); $event.stopPropagation()">
+          <mat-icon>{{ expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="action-btn"
+          matTooltip="Edit"
+          (click)="startEdit()">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="action-btn delete-btn"
+          matTooltip="Delete"
+          (click)="requestDelete()">
+          <mat-icon>delete</mat-icon>
+        </button>
+      } @else {
+        <button mat-icon-button color="primary" matTooltip="Save" (click)="saveEdit()">
+          <mat-icon>check</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Cancel" (click)="cancelEdit()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    @if (!isEditing) {
+      <mat-card-title class="title">{{ item.title }}</mat-card-title>
+    } @else {
+      <mat-form-field appearance="outline" class="full-width slim">
+        <mat-label>Title</mat-label>
+        <input matInput [(ngModel)]="draft.title" />
+      </mat-form-field>
+    }
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Collapsed summary: chips only -->
+    @if (!expanded && !isEditing) {
+      @if (story) {
+        <div class="meta">
+          <mat-chip-set>
+            <mat-chip>
+              <mat-icon matChipAvatar>casino</mat-icon>
+              {{ story.story_points }} pts
+            </mat-chip>
+            @if (story.acceptance_criteria.length) {
+              <mat-chip>
+                <mat-icon matChipAvatar>checklist</mat-icon>
+                {{ story.acceptance_criteria.length }} criteria
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      }
+      @if (task) {
+        <div class="meta">
+          <mat-chip-set>
+            <mat-chip [ngClass]="assigneeClass">
+              <mat-icon matChipAvatar>person</mat-icon>
+              {{ task.assignee_type }}
+            </mat-chip>
+            <mat-chip>
+              <mat-icon matChipAvatar>schedule</mat-icon>
+              {{ task.estimate_hours }}h
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      }
+    }
+
+    <!-- Expanded read-only view -->
+    @if (expanded && !isEditing) {
+      <p class="description">{{ item.description }}</p>
+
+      @if (story) {
+        <div class="meta">
+          <mat-chip-set>
+            <mat-chip>
+              <mat-icon matChipAvatar>casino</mat-icon>
+              {{ story.story_points }} pts
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+        @if (story.acceptance_criteria.length) {
+          <div class="ac">
+            <div class="ac-title">Acceptance criteria</div>
+            <ul>
+              @for (ac of story.acceptance_criteria; track ac) {
+                <li>{{ ac }}</li>
+              }
+            </ul>
+          </div>
+        }
+      }
+
+      @if (task) {
+        <div class="meta">
+          <mat-chip-set>
+            <mat-chip [ngClass]="assigneeClass">
+              <mat-icon matChipAvatar>person</mat-icon>
+              {{ task.assignee_type }}
+            </mat-chip>
+            <mat-chip>
+              <mat-icon matChipAvatar>schedule</mat-icon>
+              {{ task.estimate_hours }}h
+            </mat-chip>
+            @if (task.parent_story_id) {
+              <mat-chip>
+                <mat-icon matChipAvatar>link</mat-icon>
+                {{ task.parent_story_id }}
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      }
+    }
+
+    <!-- Edit mode -->
+    @if (isEditing) {
+      <mat-form-field appearance="outline" class="full-width slim">
+        <mat-label>Description</mat-label>
+        <textarea matInput rows="3" [(ngModel)]="draft.description"></textarea>
+      </mat-form-field>
+
+      @if (kind === 'story') {
+        <div class="inline-row">
+          <mat-form-field appearance="outline" class="slim narrow">
+            <mat-label>Story points</mat-label>
+            <mat-select [(ngModel)]="draft.story_points">
+              @for (sp of storyPointsOptions; track sp) {
+                <mat-option [value]="sp">{{ sp }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width slim">
+          <mat-label>Acceptance criteria (one per line)</mat-label>
+          <textarea matInput rows="4" [(ngModel)]="draft._acText"></textarea>
+        </mat-form-field>
+      }
+
+      @if (kind === 'task') {
+        <div class="inline-row">
+          <mat-form-field appearance="outline" class="slim">
+            <mat-label>Assignee</mat-label>
+            <mat-select [(ngModel)]="draft.assignee_type">
+              @for (a of assigneeOptions; track a) {
+                <mat-option [value]="a">{{ a }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="slim narrow">
+            <mat-label>Hours</mat-label>
+            <input matInput type="number" min="0.25" step="0.25"
+                   [(ngModel)]="draft.estimate_hours" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="slim narrow">
+            <mat-label>Parent story</mat-label>
+            <input matInput placeholder="STORY-1" [(ngModel)]="draft.parent_story_id" />
+          </mat-form-field>
+        </div>
+      }
+    }
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,132 @@
+<mat-card class="form-card" appearance="outlined">
+  <mat-card-header>
+    <mat-card-title>New requirement</mat-card-title>
+    <mat-card-subtitle>
+      Paste a BA requirement, upload documents, or add Jira references. We'll break it into Stories and Tasks.
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Project name (optional)</mat-label>
+      <input
+        matInput
+        [(ngModel)]="projectName"
+        placeholder="e.g. Customer Onboarding Wizard"
+        [disabled]="loading" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Requirement</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="requirements"
+        rows="8"
+        [disabled]="loading"
+        placeholder="Describe what needs to be built. Free-form text is fine — include user-facing behaviour, constraints, integrations, edge cases.">
+      </textarea>
+      <mat-hint align="end">{{ requirements.length }} chars (min 20)</mat-hint>
+    </mat-form-field>
+
+    <!-- Document upload zone -->
+    <div class="upload-zone" [class.disabled]="loading">
+      <input
+        #fileInput
+        type="file"
+        [accept]="acceptedTypes"
+        multiple
+        hidden
+        (change)="onFilesSelected($event)" />
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="fileInput.click()"
+        [disabled]="loading">
+        <mat-icon>upload_file</mat-icon>
+        Upload Documents
+      </button>
+      <span class="upload-hint">PDF, Word, TXT, CSV (max 10 MB each)</span>
+
+      @if (uploadedFiles.length > 0) {
+        <div class="file-chips">
+          @for (f of uploadedFiles; track f.name; let i = $index) {
+            <div class="file-chip">
+              <mat-icon class="file-icon">description</mat-icon>
+              <span class="file-name">{{ f.name }}</span>
+              <button mat-icon-button class="remove-btn" (click)="removeFile(i)" [disabled]="loading">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (uploading) {
+        <mat-progress-bar mode="indeterminate" class="upload-progress"></mat-progress-bar>
+      }
+
+      @if (uploadError) {
+        <div class="error-box">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ uploadError }}</span>
+        </div>
+      }
+
+      @if (documentText && !uploading) {
+        <div class="upload-success">
+          <mat-icon>check_circle</mat-icon>
+          <span>Text extracted from {{ uploadedFiles.length }} file(s)</span>
+        </div>
+      }
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Jira links / issue keys (optional)</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="jiraLinks"
+        rows="3"
+        [disabled]="loading"
+        placeholder="Paste Jira URLs or issue keys, one per line&#10;e.g. PROJ-101&#10;https://myteam.atlassian.net/browse/PROJ-204">
+      </textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Extra context (optional)</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="extraContext"
+        rows="3"
+        [disabled]="loading"
+        placeholder="Tech stack, constraints, existing systems, deadlines, etc.">
+      </textarea>
+    </mat-form-field>
+
+    @if (errorMessage) {
+      <div class="error-box">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button mat-button type="button" (click)="loadExample()" [disabled]="loading">
+      <mat-icon>auto_fix_high</mat-icon>
+      Load example
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      (click)="onSubmit()"
+      [disabled]="!canSubmit">
+      <mat-icon>bolt</mat-icon>
+      {{ loading ? 'Generating…' : 'Generate breakdown' }}
+    </button>
+  </mat-card-actions>
+</mat-card>

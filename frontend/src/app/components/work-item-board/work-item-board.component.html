@@ -1,0 +1,51 @@
+<div class="board">
+  <section class="column">
+    <header class="col-header story">
+      <mat-icon>assignment</mat-icon>
+      <h3>Stories</h3>
+      <span class="count">{{ breakdown.stories.length }}</span>
+    </header>
+    @if (breakdown.stories.length === 0) {
+      <div class="empty">No stories generated.</div>
+    } @else {
+      @for (s of breakdown.stories; track s.id) {
+        <app-work-item-card
+          kind="story"
+          [item]="s"
+          [autoEdit]="isNew(s.id)"
+          (itemChange)="onChange('story', $event)"
+          (itemDelete)="onDelete('story', $event)">
+        </app-work-item-card>
+      }
+    }
+    <button mat-stroked-button class="add-btn" (click)="addStory()">
+      <mat-icon>add</mat-icon>
+      Add Story
+    </button>
+  </section>
+
+  <section class="column">
+    <header class="col-header task">
+      <mat-icon>check_circle_outline</mat-icon>
+      <h3>Tasks</h3>
+      <span class="count">{{ breakdown.tasks.length }}</span>
+    </header>
+    @if (breakdown.tasks.length === 0) {
+      <div class="empty">No tasks generated.</div>
+    } @else {
+      @for (t of breakdown.tasks; track t.id) {
+        <app-work-item-card
+          kind="task"
+          [item]="t"
+          [autoEdit]="isNew(t.id)"
+          (itemChange)="onChange('task', $event)"
+          (itemDelete)="onDelete('task', $event)">
+        </app-work-item-card>
+      }
+    }
+    <button mat-stroked-button class="add-btn" (click)="addTask()">
+      <mat-icon>add</mat-icon>
+      Add Task
+    </button>
+  </section>
+</div>

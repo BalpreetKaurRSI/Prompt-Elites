@@ -1,0 +1,190 @@
+<mat-toolbar color="primary" class="topbar">
+  <mat-icon class="logo">layers</mat-icon>
+  <span class="title">BA Bot</span>
+  <span class="subtitle">SDLC Productivity Assistant by Prompt Elites</span>
+  <span class="spacer"></span>
+  @if (breakdown) {
+    <button mat-button (click)="saveBreakdown()" [disabled]="saving || !breakdown.history_id">
+      <mat-icon>save</mat-icon>
+      {{ saving ? 'Saving…' : 'Save' }}
+    </button>
+    <button mat-button [matMenuTriggerFor]="exportMenu">
+      <mat-icon>file_download</mat-icon>
+      Export
+    </button>
+    <mat-menu #exportMenu="matMenu">
+      <button mat-menu-item (click)="exportJson()">
+        <mat-icon>data_object</mat-icon>
+        JSON
+      </button>
+      <button mat-menu-item (click)="exportMarkdown()">
+        <mat-icon>description</mat-icon>
+        Markdown
+      </button>
+    </mat-menu>
+    <button mat-button (click)="toggleHistory()">
+      <mat-icon>history</mat-icon>
+      History
+    </button>
+    <button mat-button (click)="reset()">
+      <mat-icon>refresh</mat-icon>
+      New
+    </button>
+  }
+</mat-toolbar>
+
+<main class="page">
+  @if (!breakdown) {
+    <app-requirements-form
+      [loading]="loading"
+      [errorMessage]="errorMessage"
+      (submitForm)="onSubmit($event)">
+    </app-requirements-form>
+    <app-history-panel
+      (loadEntry)="loadFromHistory($event)"
+      (deleteEntry)="deleteFromHistory($event)">
+    </app-history-panel>
+  } @else {
+    @if (showHistory) {
+      <app-history-panel
+        (loadEntry)="loadFromHistory($event)"
+        (deleteEntry)="deleteFromHistory($event)">
+      </app-history-panel>
+    } @else {
+      <section class="result-header">
+        <div>
+          <h2>{{ breakdown.project_name }}</h2>
+          <p class="summary">{{ breakdown.summary }}</p>
+        </div>
+      </section>
+
+      @if (breakdown.ambiguity_warnings?.length && !ambiguityDismissed) {
+        <section class="ambiguity-banner">
+          <div class="ambiguity-header">
+            <mat-icon class="warn-icon">warning_amber</mat-icon>
+            <div>
+              <h3>Ambiguity detected in your requirements</h3>
+              <p>We found {{ breakdown.ambiguity_warnings.length }} area(s) that could be clearer. Consider refining your input for better results.</p>
+            </div>
+          </div>
+          <div class="ambiguity-list">
+            @for (w of breakdown.ambiguity_warnings; track w.area) {
+              <div class="ambiguity-item">
+                <div class="ambiguity-area">
+                  <mat-icon>help_outline</mat-icon>
+                  <strong>{{ w.area }}</strong>
+                </div>
+                <p class="ambiguity-concern">{{ w.concern }}</p>
+                <p class="ambiguity-suggestion">
+                  <mat-icon>lightbulb_outline</mat-icon>
+                  {{ w.suggestion }}
+                </p>
+              </div>
+            }
+          </div>
+          <div class="ambiguity-actions">
+            <button mat-flat-button color="primary" (click)="refineRequirements()">
+              <mat-icon>edit</mat-icon>
+              Refine Input
+            </button>
+            <button mat-stroked-button (click)="dismissAmbiguity()">
+              Proceed Anyway
+            </button>
+          </div>
+        </section>
+      }
+
+      <app-work-item-board
+        [breakdown]="breakdown"
+        (itemChange)="onItemChange($event)"
+        (itemDelete)="onItemDelete($event)"
+        (itemAdd)="onItemAdd($event)">
+      </app-work-item-board>
+
+      <!-- Test case generation -->
+      <section class="test-case-section">
+        @if (testCases.length === 0 && !generatingTests) {
+          <div class="test-case-cta">
+            <button
+              mat-flat-button
+              color="accent"
+              (click)="generateTestCases()"
+              [disabled]="generatingTests">
+              <mat-icon>science</mat-icon>
+              Generate Test Cases
+            </button>
+            <span class="cta-hint">Create deep, minimal test cases from your stories and tasks</span>
+          </div>
+        }
+
+        @if (generatingTests) {
+          <div class="test-case-loading">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            <p>Generating test cases…</p>
+          </div>
+        }
+
+        @if (testCaseError) {
+          <div class="error-box">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ testCaseError }}</span>
+          </div>
+        }
+
+        @if (testCases.length > 0) {
+          <div class="test-suite-header">
+            <h3>
+              <mat-icon>science</mat-icon>
+              Test Cases ({{ testCases.length }})
+            </h3>
+            <button
+              mat-stroked-button
+              (click)="generateTestCases()"
+              [disabled]="generatingTests">
+              <mat-icon>refresh</mat-icon>
+              Regenerate
+            </button>
+          </div>
+
+          <div class="test-case-list">
+            @for (tc of testCases; track tc.id) {
+              <div class="test-case-card">
+                <div class="tc-header">
+                  <span class="tc-id">{{ tc.id }}</span>
+                  <span class="tc-title">{{ tc.title }}</span>
+                  <span class="tc-priority" [attr.data-priority]="tc.priority">{{ tc.priority }}</span>
+                  @if (tc.related_story_id) {
+                    <span class="tc-story-ref">{{ tc.related_story_id }}</span>
+                  }
+                </div>
+                @if (tc.preconditions) {
+                  <div class="tc-preconditions">
+                    <strong>Preconditions:</strong> {{ tc.preconditions }}
+                  </div>
+                }
+                <table class="tc-steps">
+                  <thead>
+                    <tr>
+                      <th class="step-num">#</th>
+                      <th class="step-action">Action</th>
+                      <th class="step-expected">Expected Result</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (step of tc.steps; track step.step_number) {
+                      <tr>
+                        <td class="step-num">{{ step.step_number }}</td>
+                        <td class="step-action">{{ step.action }}</td>
+                        <td class="step-expected">{{ step.expected_result }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+  }
+</main>

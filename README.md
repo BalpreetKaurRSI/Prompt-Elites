@@ -102,10 +102,11 @@ Why tool-use instead of "ask for JSON in the prompt": Claude returns the exact J
 ## Project structure
 
 ```
-project2-requirements-planner/
+Prompt-Elites/
 ├── backend/
 │   ├── main.py                  # FastAPI app + /api/breakdown
 │   ├── anthropic_client.py      # Async client + tool-use JSON schema
+│   ├── database.py              # SQLite history persistence helpers
 │   ├── schemas.py               # Pydantic models (Story, Task, Bug, Breakdown)
 │   ├── requirements.txt
 │   ├── Dockerfile
@@ -124,6 +125,7 @@ project2-requirements-planner/
 │   │       │   └── export.service.ts       # JSON & Markdown export
 │   │       └── components/
 │   │           ├── requirements-form/      # Input form
+│   │           ├── history-panel/          # Saved breakdowns
 │   │           ├── work-item-board/        # 3-column board
 │   │           └── work-item-card/         # Story / Task / Bug card
 │   ├── angular.json / tsconfig*.json / package.json
@@ -131,6 +133,7 @@ project2-requirements-planner/
 │   ├── nginx.conf               # production proxy
 │   ├── Dockerfile               # Node builder → nginx serve
 │   └── .dockerignore
+├── BA_Bot_Project_Report.html
 ├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
@@ -151,7 +154,7 @@ For non-Docker dev: Python 3.10+ and Node.js 20+.
 ## Quick start (Docker)
 
 ```bash
-cd ~/Downloads/project2-requirements-planner
+cd Prompt-Elites
 
 # 1. Set up your env
 cp .env.example .env
